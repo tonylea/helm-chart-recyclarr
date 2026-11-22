@@ -1,0 +1,173 @@
+suite: CronJob
+release:
+  name: recyclarr
+templates:
+  - templates/cronjob.yaml
+tests:
+  - it: runs one sync at a time, daily in UTC, without retrying a failed one
+    asserts:
+      - equal:
+          path: spec.schedule
+          value: "@daily"
+      - equal:
+          path: spec.timeZone
+          value: Etc/UTC
+      - equal:
+          path: spec.concurrencyPolicy
+          value: Forbid
+      - equal:
+          path: spec.jobTemplate.spec.backoffLimit
+          value: 0
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.restartPolicy
+          value: Never
+
+  - it: uses the schedule and time zone, and gives the zone to TZ
+    set:
+      schedule: "0 4 * * *"
+      timeZone: Europe/London
+    asserts:
+      - equal:
+          path: spec.schedule
+          value: "0 4 * * *"
+      - equal:
+          path: spec.timeZone
+          value: Europe/London
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: TZ
+            value: Europe/London
+
+  - it: runs `recyclarr sync` from the chart's appVersion
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].image
+          value: ghcr.io/recyclarr/recyclarr:8.8.1
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].args
+          value: [sync]
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.containers[0].command
+
+  - it: uses the image tag when one is set
+    set:
+      image.tag: 8.8.0
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].image
+          value: ghcr.io/recyclarr/recyclarr:8.8.0
+
+  - it: runs as the user and group, non-root, with no service links or API token
+    set:
+      user: 1026
+      group: 100
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 1026
+            runAsGroup: 100
+            fsGroup: 100
+            seccompProfile:
+              type: RuntimeDefault
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.enableServiceLinks
+          value: false
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.automountServiceAccountToken
+          value: false
+
+  - it: runs with a read-only root filesystem and no capabilities
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].securityContext
+          value:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+  - it: adds the extra env entries after its own
+    set:
+      env:
+        - name: SONARR_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sonarr
+              key: api-key
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          value:
+            - name: TZ
+              value: Etc/UTC
+            - name: RECYCLARR_DATA_DIR
+              value: /data
+            - name: SONARR_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sonarr
+                  key: api-key
+
+  - it: mounts the state claim, the configs read-only, and emptyDirs for the data directory and /tmp
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: config
+              mountPath: /config
+            - name: configs
+              mountPath: /config/configs
+              readOnly: true
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes
+          value:
+            - name: config
+              persistentVolumeClaim:
+                claimName: recyclarr-config
+            - name: configs
+              configMap:
+                name: recyclarr-configs
+            - name: data
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}
+
+  - it: mounts an existing claim for /config
+    set:
+      persistence.existingClaim: my-config
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: my-config
+
+  - it: passes the resources and affinity
+    set:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values: [arm64]
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].resources
+          value:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key
+          value: kubernetes.io/arch

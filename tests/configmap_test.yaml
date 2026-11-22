@@ -1,0 +1,37 @@
+suite: ConfigMap
+release:
+  name: recyclarr
+templates:
+  - templates/configmap.yaml
+tests:
+  - it: holds each config file by its name
+    set:
+      configs:
+        sonarr.yml: |
+          sonarr:
+            series:
+              base_url: http://sonarr:8989
+        radarr.yml: |
+          radarr:
+            movies:
+              base_url: http://radarr:7878
+    asserts:
+      - equal:
+          path: metadata.name
+          value: recyclarr-configs
+      - equal:
+          path: data
+          value:
+            sonarr.yml: |
+              sonarr:
+                series:
+                  base_url: http://sonarr:8989
+            radarr.yml: |
+              radarr:
+                movies:
+                  base_url: http://radarr:7878
+
+  - it: fails without a config file
+    asserts:
+      - failedTemplate:
+          errorMessage: configs needs at least one Recyclarr config file
