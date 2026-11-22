@@ -14,8 +14,8 @@ Recyclarr's state, which records the custom formats it created, is kept on a per
 | `image.tag` | the chart's `appVersion` |
 | `user` | `1000` |
 | `group` | `1000` |
-| `schedule` | `@daily` |
-| `timeZone` | `Etc/UTC` |
+| `schedule` | `0 4 * * *` |
+| `timeZone` | `Europe/London` |
 | `configs` | none; at least one required |
 | `env` | none |
 | `resources` | none |
@@ -50,8 +50,6 @@ helm install recyclarr recyclarr/recyclarr --values my-values.yaml
 ```
 
 ```yaml
-schedule: "0 4 * * *"
-timeZone: Europe/London
 env:
   - name: SONARR_API_KEY
     valueFrom:

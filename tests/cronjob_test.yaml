@@ -4,14 +4,14 @@ release:
 templates:
   - templates/cronjob.yaml
 tests:
-  - it: runs one sync at a time, daily in UTC
+  - it: runs one sync at a time, daily at 04:00 London time
     asserts:
       - equal:
           path: spec.schedule
-          value: "@daily"
+          value: "0 4 * * *"
       - equal:
           path: spec.timeZone
-          value: Etc/UTC
+          value: Europe/London
       - equal:
           path: spec.concurrencyPolicy
           value: Forbid
@@ -21,20 +21,20 @@ tests:
 
   - it: uses the schedule and time zone, and gives the zone to TZ
     set:
-      schedule: "0 4 * * *"
-      timeZone: Europe/London
+      schedule: "30 3 * * 1"
+      timeZone: Europe/Berlin
     asserts:
       - equal:
           path: spec.schedule
-          value: "0 4 * * *"
+          value: "30 3 * * 1"
       - equal:
           path: spec.timeZone
-          value: Europe/London
+          value: Europe/Berlin
       - contains:
           path: spec.jobTemplate.spec.template.spec.containers[0].env
           content:
             name: TZ
-            value: Europe/London
+            value: Europe/Berlin
 
   - it: runs `recyclarr sync` from the chart's appVersion
     asserts:
@@ -99,7 +99,7 @@ tests:
           path: spec.jobTemplate.spec.template.spec.containers[0].env
           value:
             - name: TZ
-              value: Etc/UTC
+              value: Europe/London
             - name: RECYCLARR_DATA_DIR
               value: /data
             - name: SONARR_API_KEY

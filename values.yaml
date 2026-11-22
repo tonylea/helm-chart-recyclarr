@@ -4,8 +4,8 @@ image:
 user: 1000
 group: 1000
 
-schedule: "@daily"
-timeZone: Etc/UTC
+schedule: "0 4 * * *"
+timeZone: Europe/London
 
 configs: {}
 
