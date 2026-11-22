@@ -4,7 +4,7 @@ release:
 templates:
   - templates/cronjob.yaml
 tests:
-  - it: runs one sync at a time, daily in UTC, without retrying a failed one
+  - it: runs one sync at a time, daily in UTC
     asserts:
       - equal:
           path: spec.schedule
@@ -15,9 +15,6 @@ tests:
       - equal:
           path: spec.concurrencyPolicy
           value: Forbid
-      - equal:
-          path: spec.jobTemplate.spec.backoffLimit
-          value: 0
       - equal:
           path: spec.jobTemplate.spec.template.spec.restartPolicy
           value: Never

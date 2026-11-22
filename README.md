@@ -5,7 +5,6 @@
 Deploys [Recyclarr](https://github.com/recyclarr/recyclarr) v8 from its official image, [`ghcr.io/recyclarr/recyclarr`](https://github.com/recyclarr/recyclarr/pkgs/container/recyclarr).
 
 Recyclarr runs as a Kubernetes CronJob: each run is one `recyclarr sync` that exits when it's done, and a run never starts while the last one is still going.
-A failed sync isn't retried, since it fails the same way until its config, Sonarr or Radarr changes; its pod is kept for the logs.
 Recyclarr's state, which records the custom formats it created, is kept on a persistent volume at `/config`.
 
 ## Values

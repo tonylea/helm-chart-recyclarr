@@ -11,8 +11,6 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
-      # A failed sync isn't retried: it fails the same way until its config or Sonarr or Radarr changes, and its pod is kept for the logs.
-      backoffLimit: 0
       template:
         metadata:
           labels:
