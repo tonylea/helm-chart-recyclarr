@@ -1,0 +1,11 @@
+# kind binds a claim only once a pod uses it, and a CronJob starts none at install.
+# A claim the chart made would stay Pending and fail chart-testing's wait, so the install uses this one, outside the release.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: recyclarr-config
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi

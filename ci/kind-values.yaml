@@ -1,0 +1,8 @@
+configs:
+  sonarr.yml: |
+    sonarr:
+      series:
+        base_url: http://sonarr:8989
+        api_key: !env_var SONARR_API_KEY
+persistence:
+  existingClaim: recyclarr-config
