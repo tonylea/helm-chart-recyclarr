@@ -1,24 +1,18 @@
 image:
-  # Empty uses the chart's appVersion.
   tag: ""
 
 user: 1000
 group: 1000
 
-# When `recyclarr sync` runs, in timeZone; TZ is set to the same zone.
 schedule: "@daily"
 timeZone: Etc/UTC
 
-# Recyclarr config files, by file name, mounted in /config/configs.
 configs: {}
 
-# Extra env entries, such as API keys from a Secret for !env_var.
 env: []
 
 resources: {}
 
-# /config: Recyclarr's state, which records the custom formats it created.
-# An empty storageClassName uses the cluster's default class.
 persistence:
   existingClaim: ""
   storageClassName: ""

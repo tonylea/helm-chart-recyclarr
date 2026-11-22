@@ -8,7 +8,6 @@ metadata:
 spec:
   schedule: {{ .Values.schedule | quote }}
   timeZone: {{ .Values.timeZone | quote }}
-  # Two syncs at once would race on the same custom formats and state.
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -70,7 +69,7 @@ spec:
             - name: configs
               configMap:
                 name: {{ .Release.Name }}-configs
-            # The guide clones and logs, fetched again on each run.
+            # Holds only the guide clones, cloned again each run, and the logs.
             - name: data
               emptyDir: {}
             - name: tmp
