@@ -1,0 +1,74 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "recyclarr.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  timeZone: {{ .Values.timeZone | quote }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "recyclarr.labels" . | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          enableServiceLinks: false
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: {{ .Values.user }}
+            runAsGroup: {{ .Values.group }}
+            fsGroup: {{ .Values.group }}
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: recyclarr
+              image: "ghcr.io/recyclarr/recyclarr:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              # Given arguments, the entrypoint runs `recyclarr <arguments>` once instead of its cron schedule.
+              args: [sync]
+              env:
+                - name: TZ
+                  value: {{ .Values.timeZone | quote }}
+                - name: RECYCLARR_DATA_DIR
+                  value: /data
+                {{- with .Values.env }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
+              securityContext:
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: [ALL]
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                - name: configs
+                  mountPath: /config/configs
+                  readOnly: true
+                - name: data
+                  mountPath: /data
+                - name: tmp
+                  mountPath: /tmp
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumes:
+            - name: config
+              persistentVolumeClaim:
+                claimName: {{ .Values.persistence.existingClaim | default (printf "%s-config" .Release.Name) }}
+            - name: configs
+              configMap:
+                name: {{ .Release.Name }}-configs
+            # Holds only the guide clones, cloned again each run, and the logs.
+            - name: data
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}

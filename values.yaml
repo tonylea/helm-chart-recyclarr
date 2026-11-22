@@ -1,0 +1,21 @@
+image:
+  tag: ""
+
+user: 1000
+group: 1000
+
+schedule: "0 4 * * *"
+timeZone: Europe/London
+
+configs: {}
+
+env: []
+
+resources: {}
+
+persistence:
+  existingClaim: ""
+  storageClassName: ""
+  size: 1Gi
+
+affinity: {}

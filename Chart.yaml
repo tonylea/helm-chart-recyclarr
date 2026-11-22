@@ -1,0 +1,9 @@
+apiVersion: v2
+name: recyclarr
+description: Deploys Recyclarr, which syncs TRaSH Guides settings to Sonarr and Radarr
+type: application
+version: 1.0.0
+appVersion: "8.8.1"
+home: https://github.com/tonylea/helm-chart-recyclarr
+sources:
+  - https://github.com/recyclarr/recyclarr

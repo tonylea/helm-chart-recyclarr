@@ -1,11 +1,11 @@
 {
-  "name": "helm-chart-app-name",
+  "name": "helm-chart-recyclarr",
   "version": "1.0.0",
-  "description": "Deploys App Name, [what App Name does, in a few words]",
+  "description": "Deploys Recyclarr, which syncs TRaSH Guides settings to Sonarr and Radarr",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tonylea/helm-chart-app-name.git"
+    "url": "git+https://github.com/tonylea/helm-chart-recyclarr.git"
   },
   "license": "MIT",
   "scripts": {
