@@ -1,0 +1,15 @@
+{{- if not .Values.configs }}
+{{- fail "configs needs at least one Recyclarr config file" }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "recyclarr.labels" . | nindent 4 }}
+data:
+  {{- range $name, $content := .Values.configs }}
+  {{ $name }}: |
+    {{- $content | trim | nindent 4 }}
+  {{- end }}
